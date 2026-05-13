@@ -5,8 +5,8 @@
 // constants
 constexpr int TILE_SIZE = 256;
 constexpr float G = 1;
-constexpr float SOFTENING = 0.1f;
-constexpr float DT = 0.01f;
+constexpr float SOFTENING = 0.05f;
+constexpr float DT = 0.001f;
 
 struct Bodies {
     float *px, *py, *pz;
