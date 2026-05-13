@@ -23,7 +23,7 @@ struct Camera {
     float phi = 0.4f; //elevation
     float r= 20.f; 
     bool dragging = false;
-    double lastX = 0, lastY = 0
+    double lastX = 0, lastY = 0;
 };
 
 static Camera cam;
@@ -42,7 +42,7 @@ static void mat4Look(float*m, float ex, float ey, float ez, float cx, float cy, 
     fx/=fl; fy /= fl; fz /= fl;
 
     //up (0,1,0)
-    float rx = fy*0-fz, ry = fz*0-fx*0, rz = fx-fy*0
+    float rx = fy*0-fz, ry = fz*0-fx*0, rz = fx-fy*0;
     float rl = sqrtf(rx*rx+ry*ry+rz*rz);
     rx/=rl; ry/=rl; rz/= rl;
 
@@ -138,7 +138,7 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        stepRK4(bodies, dT);
+        stepRK4(bodies, DT);
 
         // update camera
         float ex = cam.r * sinf(cam.phi) * cosf(cam.theta);
@@ -161,8 +161,8 @@ int main() {
 
         //fps count
         frames++;
-        double t1 = glfwGetTime()
-        if (tq-t0>=1.0) {
+        double t1 = glfwGetTime();
+        if (t1-t0>=1.0) {
             printf("fps: %d | N: %d\n", frames, N);
             frames = 0;
             t0 = t1;
