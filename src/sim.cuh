@@ -4,7 +4,7 @@
 
 // constants
 constexpr int TILE_SIZE = 256;
-constexpr float G = 6.67e-11f;
+constexpr float G = 1;
 constexpr float SOFTENING = 0.1f;
 constexpr float DT = 0.01f;
 
