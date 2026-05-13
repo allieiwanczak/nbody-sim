@@ -12,7 +12,7 @@ void main() {
     brightness = pow(brightness, 2.0);
 
     // normalize speed
-    float vMax = 1.0;
+    float vMax = 1;
     float t = clamp(vSpeed / vMax, 0.0, 1.0);
 
     // colors by speed
