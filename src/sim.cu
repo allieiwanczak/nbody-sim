@@ -184,21 +184,26 @@ __global__ void interleaveKernel(
     const float* __restrict__ px,
     const float* __restrict__ py,
     const float* __restrict__ pz,
+    const float* __restrict__ vx,
+    const float* __restrict__ vy,
+    const float* __restrict__ vz,
     float* __restrict__ out,
     int n
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= n) return;
-    out[i*3 + 0] = px[i];
-    out[i*3 + 1] = py[i];
-    out[i*3 + 2] = pz[i];
+    out[i*4 + 0] = px[i];
+    out[i*4 + 1] = py[i];
+    out[i*4 + 2] = pz[i];
+    out[i*4 + 3] = sqrtf(vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i]);
 }
 
 void interleavePositions(const float* px, const float* py, const float* pz,
+                         const float* vx, const float* vy, const float* vz,
                          float* out, int n) {
     dim3 block(TILE_SIZE);
     dim3 grid((n + TILE_SIZE - 1) / TILE_SIZE);
-    interleaveKernel<<<grid, block>>>(px, py, pz, out, n);
+    interleaveKernel<<<grid, block>>>(px, py, pz, vx, vy, vz, out, n);
 }
 
 void stepRK4(Bodies& b, float dt) {
