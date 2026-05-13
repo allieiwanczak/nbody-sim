@@ -91,7 +91,7 @@ __global__ void integrateKernel(
     const Derivatives k4,
     float dt
 ) {
-    int i = threadIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i>= bodies.n) return;
 
     float dt6 = dt / 6.f;
