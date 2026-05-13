@@ -208,16 +208,16 @@ void stepRK4(Bodies& b, float dt) {
 
     // k1
     forceKernel<<<grid, block>>>(
-        b.px, b.py, b.pz, b.mass, b.vz, b.vy, b.vz,
-        s_k1.dpx, s_k1.dpx, s_k1.dpz, s_k1.dvx, s_k1.dvy, s_k1.dvz, n
+        b.px, b.py, b.pz, b.mass, b.vx, b.vy, b.vz,
+        s_k1.dpx, s_k1.dpy, s_k1.dpz, s_k1.dvx, s_k1.dvy, s_k1.dvz, n
     );
 
     // k2 : eval at pos + dt/2 * k1
     advanceStateKernel<<<grid,block>>>(
-        b.px, b.py, b.pz, b.vz, b.vy, b.vz,
+        b.px, b.py, b.pz, b.vx, b.vy, b.vz,
         s_k1.dpx, s_k1.dpy, s_k1.dpz, s_k1.dvx, s_k1.dvy, s_k1.dvz,
-        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vz, s_tmp.vy, s_tmp.vz,
-        dt * 0.5f, n 
+        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vx, s_tmp.vy, s_tmp.vz,
+        dt * 0.5f, n
     );
     forceKernel<<<grid,block>>>(
         s_tmp.px,s_tmp.py, s_tmp.pz, b.mass, s_tmp.vx, s_tmp.vy, s_tmp.vz,
@@ -226,22 +226,22 @@ void stepRK4(Bodies& b, float dt) {
 
     // k3: eval at pos + dt/2 *k2
     advanceStateKernel<<<grid,block>>>(
-        b.px, b.py, b.pz, b.vz, b.vy, b.vz,
+        b.px, b.py, b.pz, b.vx, b.vy, b.vz,
         s_k2.dpx, s_k2.dpy, s_k2.dpz, s_k2.dvx, s_k2.dvy, s_k2.dvz,
-        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vz, s_tmp.vy, s_tmp.vz,
-        dt * 0.5f, n 
+        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vx, s_tmp.vy, s_tmp.vz,
+        dt * 0.5f, n
     );
     forceKernel<<<grid,block>>>(
         s_tmp.px,s_tmp.py, s_tmp.pz, b.mass, s_tmp.vx, s_tmp.vy, s_tmp.vz,
         s_k3.dpx, s_k3.dpy, s_k3.dpz, s_k3.dvx, s_k3.dvy, s_k3.dvz, n
     );
 
-    // k4: eval at pos + dt/2 *k3
+    // k4: eval at pos + dt *k3
     advanceStateKernel<<<grid,block>>>(
-        b.px, b.py, b.pz, b.vz, b.vy, b.vz,
+        b.px, b.py, b.pz, b.vx, b.vy, b.vz,
         s_k3.dpx, s_k3.dpy, s_k3.dpz, s_k3.dvx, s_k3.dvy, s_k3.dvz,
-        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vz, s_tmp.vy, s_tmp.vz,
-        dt * 0.5f, n 
+        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vx, s_tmp.vy, s_tmp.vz,
+        dt, n
     );
     forceKernel<<<grid,block>>>(
         s_tmp.px,s_tmp.py, s_tmp.pz, b.mass, s_tmp.vx, s_tmp.vy, s_tmp.vz,
