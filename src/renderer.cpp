@@ -69,13 +69,14 @@ void rendererInit(Renderer& r, GLFWwindow* window, int n) {
     glBindBuffer(GL_ARRAY_BUFFER, r.vbo);
 
     // allocate vbo
-    glBufferData(GL_ARRAY_BUFFER, n * 3 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, n * 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindVertexArray(0);
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // register vbo with cuda
     cudaGraphicsGLRegisterBuffer(
@@ -97,7 +98,7 @@ void rendererUpdate(Renderer& r, const Bodies& b) {
 
     cudaGraphicsMapResources(1, &r.cudaVboResource, 0);
     cudaGraphicsResourceGetMappedPointer((void**)&dptr, &size, r.cudaVboResource);
-    interleavePositions(b.px, b.py, b.pz, dptr, b.n);
+    interleavePositions(b.px, b.py, b.pz, b.vx, b.vy, b.vz, dptr, b.n);
 
     cudaGraphicsUnmapResources(1, &r.cudaVboResource, 0);
 }
