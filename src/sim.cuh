@@ -52,3 +52,23 @@ void allocBodies(Bodies& b, int n);
 void freeBodies(Bodies& b);
 void allocDerivatives(Derivatives& d, int n);
 void freeDerivatives(Derivatives& d);
+
+// RK4
+struct TempState { 
+    float *px, *py, *pz;
+    float *vx, *vy, *vz;
+};
+
+__global__ void advanceStateKernel(
+    const float* __restrict__ bpx, const float* __restrict__ bpy, const float* __restrict__ bpz,
+    const float* __restrict__ bvx, const float* __restrict__ bvy, const float* __restrict__ bvz,
+    const float* __restrict__ dpx, const float* __restrict__ dpy, const float* __restrict__ dpz,
+    const float* __restrict__ dvx, const float* __restrict__ dvy, const float* __restrict__ dvz,
+    float* __restrict__ opx, float* __restrict__ opy, float* __restrict__ opz,
+    float* __restrict__ ovx, float* __restrict__ ovy, float* __restrict__ ovz,
+    float scale, int n
+);
+
+void simInit(int n);
+void simFree();
+void stepRK4(Bodies& b, float dt);
