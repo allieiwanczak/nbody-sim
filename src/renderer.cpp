@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 
+#include <glad/glad.h>
 #include "renderer.cuh"
 
 // load shaders
