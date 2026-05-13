@@ -80,8 +80,7 @@ static void initPlummer(Bodies& b, int n, float a = 1.f, float totalMass = 1.f) 
 }
 
 // two galaxy collision
-
-static void initGallaxyCollision(Bodies&b, int n, float a = 1.f) {
+static void initGalaxyCollision(Bodies&b, int n, float a = 1.f) {
     srand((unsigned)time(nullptr));
 
     int half = n/2;
@@ -104,13 +103,13 @@ static void initGallaxyCollision(Bodies&b, int n, float a = 1.f) {
         float phi = randf(0.f, 2.f*(float)M_PI);
 
         hpx[i] = ox + r * sinT * cosf(phi);
-        hpy[i] = ox + r * sinT * sinf(phi);
-        hpz[i] = ox + r * cosT;
+        hpy[i] = oy + r * sinT * sinf(phi);
+        hpz[i] = oz + r * cosT;
 
-        float vesc = sqrtf(2.f) * powf(1.f + (r*r) / (a*a), -0.25f);
+        float vesc = powf(1.f + (r*r) / (a*a), -0.25f);
         float q, g;
         do { q = randf(0.f, 1.f); g = randf(0.f, 0.1f); }
-        while (g > q*q * powf(1.f - q*q, 3.5f)); 
+        while (g > q*q * powf(1.f - q*q, 3.5f));
 
         float vmag = q *vesc;
 
@@ -124,10 +123,10 @@ static void initGallaxyCollision(Bodies&b, int n, float a = 1.f) {
     };
 
     // galaxy A: offset -5 on x, moving right
-    for (int i = 0 ; i< half; i++) plummerBody(i, -5.f, 0.f, 0.f, 0.5f, 0.f, 0.f );
+    for (int i = 0 ; i< half; i++) plummerBody(i, -5.f, 0.3f, 0.f, 0.2f, 0.f, 0.f );
     
     // galaxy B: offset +5 on x, moving left
-    for (int i = half; i < n; i++) plummerBody(i, 5.f, 0.f, 0.f, -0.5f, 0.f, 0.f);
+    for (int i = half; i < n; i++) plummerBody(i, 5.f, -0.3f, 0.f, -0.2f, 0.f, 0.f);
 
     cudaMemcpy(b.px,   hpx,   n*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(b.py,   hpy,   n*sizeof(float), cudaMemcpyHostToDevice);
