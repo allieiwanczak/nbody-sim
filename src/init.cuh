@@ -127,7 +127,7 @@ static void initGallaxyCollision(Bodies&b, int n, float a = 1.f) {
     for (int i = 0 ; i< half; i++) plummerBody(i, -5.f, 0.f, 0.f, 0.5f, 0.f, 0.f );
     
     // galaxy B: offset +5 on x, moving left
-    for (int i = 0; i < half; i++) plummerBody(i, 5.f, 0.f, 0.f, -0.5f, 0.f, 0.f);
+    for (int i = half; i < n; i++) plummerBody(i, 5.f, 0.f, 0.f, -0.5f, 0.f, 0.f);
 
     cudaMemcpy(b.px,   hpx,   n*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(b.py,   hpy,   n*sizeof(float), cudaMemcpyHostToDevice);
