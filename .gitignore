@@ -1,0 +1,21 @@
+# Build
+build/
+cmake-build-*/
+
+# CUDA
+*.o
+*.ptx
+*.cubin
+*.fatbin
+
+# Binaries
+nbody
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
