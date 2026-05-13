@@ -2,7 +2,7 @@
 
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
-#include <GL/glad.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "sim.cuh"
