@@ -10,7 +10,7 @@ constexpr float DT = 0.01f;
 
 struct Bodies {
     float *px, *py, *pz;
-    float *vx, *vy, *vx;
+    float *vx, *vy, *vz;
     float *mass;
     int n;
 };
