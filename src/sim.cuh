@@ -6,7 +6,7 @@
 constexpr int TILE_SIZE = 256;
 constexpr float G = 1;
 constexpr float SOFTENING = 0.05f;
-constexpr float DT = 0.001f;
+constexpr float DT = 0.005f;
 
 struct Bodies {
     float *px, *py, *pz;
@@ -54,6 +54,7 @@ void allocDerivatives(Derivatives& d, int n);
 void freeDerivatives(Derivatives& d);
 
 void interleavePositions(const float* px, const float* py, const float* pz,
+                         const float* vx, const float* vy, const float* vz,
                          float* out, int n);
 
 // RK4
