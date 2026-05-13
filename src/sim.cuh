@@ -53,6 +53,9 @@ void freeBodies(Bodies& b);
 void allocDerivatives(Derivatives& d, int n);
 void freeDerivatives(Derivatives& d);
 
+void interleavePositions(const float* px, const float* py, const float* pz,
+                         float* out, int n);
+
 // RK4
 struct TempState { 
     float *px, *py, *pz;
