@@ -180,6 +180,27 @@ void simFree() {
     freeDerivatives(s_k3); freeDerivatives(s_k4);
 }
 
+__global__ void interleaveKernel(
+    const float* __restrict__ px,
+    const float* __restrict__ py,
+    const float* __restrict__ pz,
+    float* __restrict__ out,
+    int n
+) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n) return;
+    out[i*3 + 0] = px[i];
+    out[i*3 + 1] = py[i];
+    out[i*3 + 2] = pz[i];
+}
+
+void interleavePositions(const float* px, const float* py, const float* pz,
+                         float* out, int n) {
+    dim3 block(TILE_SIZE);
+    dim3 grid((n + TILE_SIZE - 1) / TILE_SIZE);
+    interleaveKernel<<<grid, block>>>(px, py, pz, out, n);
+}
+
 void stepRK4(Bodies& b, float dt) {
     int n = b.n;
     dim3 block(TILE_SIZE);
