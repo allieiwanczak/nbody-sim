@@ -114,7 +114,7 @@ int main() {
     //sim
     Bodies bodies;
     allocBodies(bodies, N);
-    initPlummer(bodies, N);
+    initGalaxyCollision(bodies, N);
     simInit(N);
 
     //renderer
