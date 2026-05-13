@@ -137,3 +137,96 @@ void freeDerivatives(Derivatives& d) {
     cudaFree(d.dpx); cudaFree(d.dpy); cudaFree(d.dpz);
     cudaFree(d.dvx); cudaFree(d.dvy); cudaFree(d.dvz);
 }
+
+// advance state kernel
+__global__ void advanceStateKernel(
+    const float* __restrict__ bpx, const float* __restrict__ bpy, const float* __restrict__ bpz,
+    const float* __restrict__ bvx, const float* __restrict__ bvy, const float* __restrict__ bvz,
+    const float* __restrict__ dpx, const float* __restrict__ dpy, const float* __restrict__ dpz,
+    const float* __restrict__ dvx, const float* __restrict__ dvy, const float* __restrict__ dvz,
+    float* __restrict__ opx, float* __restrict__ opy, float* __restrict__ opz,
+    float* __restrict__ ovx, float* __restrict__ ovy, float* __restrict__ ovz,
+    float scale, int n
+) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n) return;
+
+    opx[i] = bpx[i] + scale * dpx[i];
+    opy[i] = bpy[i] + scale * dpy[i];
+    opz[i] = bpz[i] + scale * dpz[i];
+
+    ovx[i] = bvx[i] + scale * dvx[i];
+    ovy[i] = bvy[i] + scale * dvy[i];
+    ovz[i] = bvz[i] + scale * dvz[i];
+}
+
+// RK4 State
+static TempState s_tmp;
+static Derivatives s_k1, s_k2, s_k3, s_k4;
+
+void simInit(int n) {
+    cudaMalloc(&s_tmp.px, n*sizeof(float)); cudaMalloc(&s_tmp.py, n*sizeof(float)); cudaMalloc(&s_tmp.pz, n*sizeof(float));
+    cudaMalloc(&s_tmp.vx, n*sizeof(float)); cudaMalloc(&s_tmp.vy, n*sizeof(float)); cudaMalloc(&s_tmp.vz, n*sizeof(float));
+    allocDerivatives(s_k1, n);
+    allocDerivatives(s_k2, n);
+    allocDerivatives(s_k3, n);
+    allocDerivatives(s_k4, n);
+}
+
+void simFree() {
+    cudaFree(s_tmp.px); cudaFree(s_tmp.py); cudaFree(s_tmp.pz);
+    cudaFree(s_tmp.vx); cudaFree(s_tmp.vy); cudaFree(s_tmp.vz);
+    freeDerivatives(s_k1); freeDerivatives(s_k2);
+    freeDerivatives(s_k3); freeDerivatives(s_k4);
+}
+
+void stepRK4(Bodies& b, float dt) {
+    int n = b.n;
+    dim3 block(TILE_SIZE);
+    dim3 grid((n + TILE_SIZE - 1) / TILE_SIZE);
+
+    // k1
+    forceKernel<<<grid, block>>>(
+        b.px, b.py, b.pz, b.mass, b.vz, b.vy, b.vz,
+        s_k1.dpx, s_k1.dpx, s_k1.dpz, s_k1.dvx, s_k1.dvy, s_k1.dvz, n
+    );
+
+    // k2 : eval at pos + dt/2 * k1
+    advanceStateKernel<<<grid,block>>>(
+        b.px, b.py, b.pz, b.vz, b.vy, b.vz,
+        s_k1.dpx, s_k1.dpy, s_k1.dpz, s_k1.dvx, s_k1.dvy, s_k1.dvz,
+        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vz, s_tmp.vy, s_tmp.vz,
+        dt * 0.5f, n 
+    );
+    forceKernel<<<grid,block>>>(
+        s_tmp.px,s_tmp.py, s_tmp.pz, b.mass, s_tmp.vx, s_tmp.vy, s_tmp.vz,
+        s_k2.dpx, s_k2.dpy, s_k2.dpz, s_k2.dvx, s_k2.dvy, s_k2.dvz, n
+    );
+
+    // k3: eval at pos + dt/2 *k2
+    advanceStateKernel<<<grid,block>>>(
+        b.px, b.py, b.pz, b.vz, b.vy, b.vz,
+        s_k2.dpx, s_k2.dpy, s_k2.dpz, s_k2.dvx, s_k2.dvy, s_k2.dvz,
+        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vz, s_tmp.vy, s_tmp.vz,
+        dt * 0.5f, n 
+    );
+    forceKernel<<<grid,block>>>(
+        s_tmp.px,s_tmp.py, s_tmp.pz, b.mass, s_tmp.vx, s_tmp.vy, s_tmp.vz,
+        s_k3.dpx, s_k3.dpy, s_k3.dpz, s_k3.dvx, s_k3.dvy, s_k3.dvz, n
+    );
+
+    // k4: eval at pos + dt/2 *k3
+    advanceStateKernel<<<grid,block>>>(
+        b.px, b.py, b.pz, b.vz, b.vy, b.vz,
+        s_k3.dpx, s_k3.dpy, s_k3.dpz, s_k3.dvx, s_k3.dvy, s_k3.dvz,
+        s_tmp.px, s_tmp.py, s_tmp.pz, s_tmp.vz, s_tmp.vy, s_tmp.vz,
+        dt * 0.5f, n 
+    );
+    forceKernel<<<grid,block>>>(
+        s_tmp.px,s_tmp.py, s_tmp.pz, b.mass, s_tmp.vx, s_tmp.vy, s_tmp.vz,
+        s_k4.dpx, s_k4.dpy, s_k4.dpz, s_k4.dvx, s_k4.dvy, s_k4.dvz, n
+    );
+
+    // combine all
+    integrateKernel<<<grid, block>>>(b, s_k1, s_k2, s_k3, s_k4, dt);
+}
